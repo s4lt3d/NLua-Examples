@@ -26,7 +26,11 @@ namespace DynamicCSharp
             ";
 
             Console.WriteLine("Running Lua Script");
+
+            // Run the script
             state.DoString(lua_code);
+
+            // Here we can get variables from the script that was run.
             Console.WriteLine("Getting variable x from state: " + state["x"]);
 
             Console.ReadKey();

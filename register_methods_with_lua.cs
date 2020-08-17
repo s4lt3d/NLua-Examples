@@ -1,3 +1,6 @@
+// Basic Lua Scripting Example
+// Walter Gordy, 2020
+
 using System;
 using System.Reflection;
 using NLua;

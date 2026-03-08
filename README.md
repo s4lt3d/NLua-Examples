@@ -1,50 +1,140 @@
-# NLua-Examples: Integrating Lua Scripting with C#
+# NLua Examples
 
-Install NLua using NuGet
+> Demonstrations of integrating Lua scripting into C# applications using NLua for dynamic behavior without recompilation.
 
+---
+
+## Installation
+
+Install NLua via NuGet:
+```
 Install-Package NLua -Version 1.5.1
+```
+
+---
 
 ## Overview
 
-NLua allows programs to execute basic lua scripts. This is useful when you want to change how the program behaves without having to recompile a program. 
+NLua enables C# applications to execute and interact with Lua scripts dynamically, allowing behavior changes without recompiling. This example demonstrates:
 
-This example demonstrates the power of integrating Lua scripting within a C# application using the `NLua` library. This project serves as a basic introduction to interacting between C# and Lua, showcasing the potential of leveraging scripting capabilities in your C# applications.
+- Registering C# methods for Lua to call
+- Executing Lua scripts from C#
+- Retrieving variables from Lua back to C#
+
+---
 
 ## Key Features
 
-- **Method Registration**: Seamlessly register C# methods which can be invoked directly from Lua.
-- **Script Execution**: Execute Lua scripts from within your C# application.
-- **Variable Retrieval**: Easily retrieve variables set within your Lua scripts back into your C# application.
+- **Method Registration** — Register C# functions as Lua callables
+- **Script Execution** — Run Lua scripts within C# context
+- **Variable Retrieval** — Access Lua variables from C#
+- **Dynamic Behavior** — Modify logic via scripts without recompiling
 
-## Code Description
+---
 
-1. **Lua Initialization**: 
-   - The `Lua` object, `state`, is instantiated to provide a new Lua state.
-   
-2. **Method Registration**: 
-   - Two functions (`LuaPrint` and `CalculateMagnitude`) from the `Program` class are registered to be available within Lua. 
-   - They are accessible from Lua scripts as `print` and `magnitude` respectively.
-   
-3. **Lua Script Execution**: 
-   - A simple Lua script is defined and executed. 
-   - This script demonstrates how to call the registered C# functions from Lua.
-   
-4. **Variable Access**: 
-   - Variables set in the Lua script can be easily accessed and used within the C# environment.
+## Example Code
 
-### Public Methods:
+### Lua Initialization
 
-- `LuaPrint(params object[] others)`: A replacement for the standard Lua `print` function, allowing Lua to directly print to the C# console.
-- `CalculateMagnitude(params float[] others)`: Calculates the magnitude given two float values. This function can be called from Lua and returns the magnitude to Lua.
+Create a new Lua state:
+```csharp
+var state = new Lua();
+```
 
-## Known Issues
+### Register C# Methods for Lua
 
-Due to the complexity of interfacing between C# and Lua, there might be certain caveats or edge cases that developers should be aware of. This example highlights a specific issue related to calling functions across C# and Lua, which might require careful handling and understanding of both languages.
+```csharp
+state["print"] = (Action<string>)LuaPrint;
+state["magnitude"] = (Func<float, float, float>)CalculateMagnitude;
+```
 
-## Dependencies
+### Execute Lua Script
 
-This project requires the `NLua` library. Ensure you have it properly set up in your project to successfully integrate and run Lua scripts.
+Define and run Lua code:
+```lua
+function calculate()
+    local result = magnitude(3.0, 4.0)
+    print("Magnitude: " .. result)
+end
+calculate()
+```
 
-## Conclusion
+### Access Lua Variables
 
-`DynamicCSharp` offers a practical demonstration of how to augment your C# applications with Lua scripting capabilities. By understanding and building upon this foundation, developers can further explore the potential of such integrations in their applications.
+Retrieve values from Lua:
+```csharp
+var value = state["myVariable"];
+```
+
+---
+
+## Project Structure
+
+```
+├── README.md
+├── NLuaExamples.sln
+└── src/
+    ├── LuaInterop.cs         — Main Lua integration class
+    ├── Examples.cs           — Example code demonstrating features
+    └── LuaScripts/
+        └── script.lua        — Sample Lua scripts
+```
+
+---
+
+## Architecture
+
+### Lua State Management
+- **Single Lua instance** per application context
+- **Method registration** enables C# ↔ Lua communication
+- **Variable sharing** through indexing (state["name"])
+
+### Type Conversion
+NLua automatically converts between:
+- C# methods → Lua functions
+- Lua tables → C# dictionaries
+- Lua numbers → C# float/double
+- Lua strings → C# strings
+
+---
+
+## Common Patterns
+
+### Safe Script Execution
+```csharp
+try
+{
+    state.DoString("-- Lua code here");
+}
+catch (Exception ex)
+{
+    Console.WriteLine("Lua error: " + ex.Message);
+}
+```
+
+### Callback Registration
+```csharp
+state["onEvent"] = (Action<string>)HandleEvent;
+// Call from Lua: onEvent("data")
+```
+
+### Complex Data Exchange
+```csharp
+// Set table from C#
+state.DoString("data = {}");
+state["data"] = new LuaTable(state);
+state.DoString("table.insert(data, 'value')");
+
+// Retrieve from Lua
+var result = state["data"];
+```
+
+---
+
+## Important Notes
+
+- Wrap Lua execution in try-catch for error handling
+- Ensure C# method signatures match Lua function expectations
+- NLua handles type conversions between C# and Lua
+- Keep Lua scripts simple for better performance
+- Use LuaTable for structured data exchange
